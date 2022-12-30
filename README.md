@@ -27,3 +27,4 @@ Run the following commands, one in each terminal:
 It is now possible to connect to the three servers by running the following in a seperate terminal:
 
     go run client/client.go   
+    (or "make client1")
