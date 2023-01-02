@@ -22,8 +22,10 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type AuctionClient interface {
-	Bid(ctx context.Context, in *RequestBid, opts ...grpc.CallOption) (*Ack, error)
-	Result(ctx context.Context, in *HighestBidRequest, opts ...grpc.CallOption) (*Outcome, error)
+	//bid = put
+	Put(ctx context.Context, in *RequestPut, opts ...grpc.CallOption) (*Ack, error)
+	//result = get
+	Get(ctx context.Context, in *ValueRequest, opts ...grpc.CallOption) (*Outcome, error)
 }
 
 type auctionClient struct {
@@ -34,18 +36,18 @@ func NewAuctionClient(cc grpc.ClientConnInterface) AuctionClient {
 	return &auctionClient{cc}
 }
 
-func (c *auctionClient) Bid(ctx context.Context, in *RequestBid, opts ...grpc.CallOption) (*Ack, error) {
+func (c *auctionClient) Put(ctx context.Context, in *RequestPut, opts ...grpc.CallOption) (*Ack, error) {
 	out := new(Ack)
-	err := c.cc.Invoke(ctx, "/exam.Auction/Bid", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/exam.Auction/Put", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *auctionClient) Result(ctx context.Context, in *HighestBidRequest, opts ...grpc.CallOption) (*Outcome, error) {
+func (c *auctionClient) Get(ctx context.Context, in *ValueRequest, opts ...grpc.CallOption) (*Outcome, error) {
 	out := new(Outcome)
-	err := c.cc.Invoke(ctx, "/exam.Auction/Result", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/exam.Auction/Get", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -56,8 +58,10 @@ func (c *auctionClient) Result(ctx context.Context, in *HighestBidRequest, opts 
 // All implementations must embed UnimplementedAuctionServer
 // for forward compatibility
 type AuctionServer interface {
-	Bid(context.Context, *RequestBid) (*Ack, error)
-	Result(context.Context, *HighestBidRequest) (*Outcome, error)
+	//bid = put
+	Put(context.Context, *RequestPut) (*Ack, error)
+	//result = get
+	Get(context.Context, *ValueRequest) (*Outcome, error)
 	mustEmbedUnimplementedAuctionServer()
 }
 
@@ -65,11 +69,11 @@ type AuctionServer interface {
 type UnimplementedAuctionServer struct {
 }
 
-func (UnimplementedAuctionServer) Bid(context.Context, *RequestBid) (*Ack, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Bid not implemented")
+func (UnimplementedAuctionServer) Put(context.Context, *RequestPut) (*Ack, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Put not implemented")
 }
-func (UnimplementedAuctionServer) Result(context.Context, *HighestBidRequest) (*Outcome, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Result not implemented")
+func (UnimplementedAuctionServer) Get(context.Context, *ValueRequest) (*Outcome, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Get not implemented")
 }
 func (UnimplementedAuctionServer) mustEmbedUnimplementedAuctionServer() {}
 
@@ -84,38 +88,38 @@ func RegisterAuctionServer(s grpc.ServiceRegistrar, srv AuctionServer) {
 	s.RegisterService(&Auction_ServiceDesc, srv)
 }
 
-func _Auction_Bid_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(RequestBid)
+func _Auction_Put_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RequestPut)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(AuctionServer).Bid(ctx, in)
+		return srv.(AuctionServer).Put(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/exam.Auction/Bid",
+		FullMethod: "/exam.Auction/Put",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AuctionServer).Bid(ctx, req.(*RequestBid))
+		return srv.(AuctionServer).Put(ctx, req.(*RequestPut))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Auction_Result_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(HighestBidRequest)
+func _Auction_Get_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ValueRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(AuctionServer).Result(ctx, in)
+		return srv.(AuctionServer).Get(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/exam.Auction/Result",
+		FullMethod: "/exam.Auction/Get",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AuctionServer).Result(ctx, req.(*HighestBidRequest))
+		return srv.(AuctionServer).Get(ctx, req.(*ValueRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -128,12 +132,12 @@ var Auction_ServiceDesc = grpc.ServiceDesc{
 	HandlerType: (*AuctionServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "Bid",
-			Handler:    _Auction_Bid_Handler,
+			MethodName: "Put",
+			Handler:    _Auction_Put_Handler,
 		},
 		{
-			MethodName: "Result",
-			Handler:    _Auction_Result_Handler,
+			MethodName: "Get",
+			Handler:    _Auction_Get_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

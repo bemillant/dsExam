@@ -6,26 +6,29 @@ option go_package = "https://github.com/bemillant/dsExam;exam";
 
 
 service Auction {
-    rpc Bid (RequestBid) returns (Ack) {}
-    rpc Result (HighestBidRequest) returns (Outcome) {}
+    //bid = put
+    rpc Put (RequestPut) returns (Ack) {}
+    //result = get
+    rpc Get (ValueRequest) returns (Outcome) {}
 }
 
-message RequestBid {
+
+message RequestPut {
     string name = 1;
-    string message = 2;
-    int32 amount = 3; 
+    int32 key = 2; 
+    int32 value = 3; 
 }
 
 message Ack {
     string message = 1;
-    int32 amount = 2;
+    bool success = 2;
 }
 
 message Outcome {
     string status = 1;
-    int32 amount = 2;
+    int32 value = 2;
 }
 
-message HighestBidRequest {
-    string message = 1;
+message ValueRequest {
+    int32 key = 1;
 }
