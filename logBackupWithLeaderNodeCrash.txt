@@ -1,0 +1,30 @@
+2023/01/03 12:33:51 --- Bemi succesfully dialed to 5001
+2023/01/03 12:33:58 Attempting to add a greeting to the definition of the word: Hello. Per instructed by Bemi
+2023/01/03 12:33:58 Add function was a success
+2023/01/03 12:33:58 Adding to other servers as well
+2023/01/03 12:33:58 Attempting to add a greeting to the definition of the word: Hello. Per instructed by Bemi
+2023/01/03 12:33:58 Add function was a success
+2023/01/03 12:33:58 Bemi got the following result from the add request: Succesfully added the definition 'a greeting' to the word 'Hello'.
+2023/01/03 12:34:03 Recieved Read-request to the word Hello
+2023/01/03 12:34:03 The client is returned the definition of their word: Hello - a greeting
+2023/01/03 12:34:03 Bemi got the following result from the Read request: a greeting
+2023/01/03 12:34:17 Attempting to add 24 hours to the definition of the word: Day. Per instructed by Bemi
+2023/01/03 12:34:17 Add function was a success
+2023/01/03 12:34:17 Adding to other servers as well
+2023/01/03 12:34:17 Attempting to add 24 hours to the definition of the word: Day. Per instructed by Bemi
+2023/01/03 12:34:17 Add function was a success
+2023/01/03 12:34:17 Bemi got the following result from the add request: Succesfully added the definition '24 hours' to the word 'Day'.
+2023/01/03 12:34:25 Recieved Read-request to the word Day
+2023/01/03 12:34:25 The client is returned the definition of their word: Day - 24 hours
+2023/01/03 12:34:25 Bemi got the following result from the Read request: 24 hours
+2023/01/03 12:34:50 An error occured, possible on the servers side. Trying to establish connection to new server...
+2023/01/03 12:34:50 --- Bemi succesfully dialed to 5002
+2023/01/03 12:34:56 Recieved Read-request to the word Day
+2023/01/03 12:34:56 The client is returned the definition of their word: Day - 24 hours
+2023/01/03 12:34:56 Bemi got the following result from the Read request: 24 hours
+2023/01/03 12:35:02 Attempting to add 30 hours to the definition of the word: Day. Per instructed by Bemi
+2023/01/03 12:35:02 Add function was a success
+2023/01/03 12:35:02 Bemi got the following result from the add request: Succesfully added the definition '30 hours' to the word 'Day'.
+2023/01/03 12:35:06 Recieved Read-request to the word Day
+2023/01/03 12:35:06 The client is returned the definition of their word: Day - 30 hours
+2023/01/03 12:35:06 Bemi got the following result from the Read request: 30 hours

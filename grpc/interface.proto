@@ -6,10 +6,9 @@ option go_package = "https://github.com/bemillant/dsExam;exam";
 
 
 service Dictionary {
-    //Bid = Add
+    
     rpc Add (RequestAdd) returns (Ack) {}
-    //Result = Read
-    rpc Read (ReadRequest) returns (ReadOutcome) {}
+    rpc Read (ReadRequest) returns (ReadOutcome) {}   
 }
 
 message RequestAdd {

@@ -22,12 +22,6 @@ type Server struct {
 	isLeader   bool
 }
 
-/*
-	- Assigns ownPort to user-input int + 5001. Default inputs are 0, 1 and 2.
-	- Sets log.out.
-	- Creates listener on ownPort.
-*/
-
 func main() {
 	arg1, _ := strconv.ParseInt(os.Args[1], 10, 32)
 	ownPort := int32(arg1) + 5001
@@ -81,6 +75,18 @@ func (s *Server) Add(ctx context.Context, RequestBid *dict.RequestAdd) (*dict.Ac
 
 	if s.dictionary[RequestBid.Key] == RequestBid.Value {
 		log.Printf("Add function was a success")
+		if s.isLeader {
+			log.Printf("Adding to other servers as well")
+			wordDef := &dict.RequestAdd{
+				Name:  RequestBid.Name,
+				Key:   RequestBid.Key,
+				Value: RequestBid.Value,
+			}
+			for _, server := range s.servers {
+				server.Add(context.Background(), wordDef)
+				//Add Acknowledgement handling here
+			}
+		}
 		return &dict.Ack{
 			Message: "Succesfully added the definition '" + val + "' to the word '" + key + "'.",
 			Success: true,

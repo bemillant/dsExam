@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"strconv"
 	"strings"
 
 	dict "github.com/bemillant/dsExam/grpc"
@@ -16,6 +15,7 @@ import (
 
 type Client struct {
 	name    string
+	server  dict.DictionaryClient
 	servers map[int32]dict.DictionaryClient
 }
 
@@ -35,12 +35,12 @@ func main() {
 		}
 	}
 
-	// flag.Parse()
 	setLog()
 
 	client := &Client{
 		name:    tempName,
 		servers: make(map[int32]dict.DictionaryClient),
+		server:  nil,
 	}
 
 	go handleClient(client)
@@ -57,23 +57,19 @@ func (client *Client) addToDictionary(word string, def string) {
 		Key:   word,
 		Value: def,
 	}
-
-	// List of responses from replicas when asking for an add-respond:
-	resultList := make([]string, 0, 2)
-
-	for port, server := range client.servers {
-		log.Printf(client.name+" sent an add request to server: %v", server)
-		ack, err := server.Add(context.Background(), wordDef)
-		if err != nil {
-			delete(client.servers, port)
-			log.Printf(client.name + " lost connection to a server, operating number of servers are now " + strconv.Itoa(int(len(resultList))))
-		} else {
-			resultList = append(resultList, ack.GetMessage())
+	ack, err := client.server.Add(context.Background(), wordDef)
+	if err != nil {
+		fmt.Println("An error occured, possible on the servers side. The add operation was a %v. Trying to establish connection to new server...", ack.Success)
+		log.Println("An error occured, possible on the servers side. Trying to establish connection to new server...")
+		client.getServerConnection(5002)
+		fmt.Println("Try again!")
+	} else {
+		if ack.Success {
+			fmt.Println("The operation was a: %v!", ack.Success)
 		}
+		log.Println(client.name + " got the following result from the add request: " + ack.GetMessage())
+		fmt.Println(ack.GetMessage())
 	}
-
-	log.Printf(client.name + " got the following result from the add request: " + resultList[0])
-	fmt.Printf(resultList[0] + "\n")
 }
 
 func (client *Client) requestRead(word string) {
@@ -82,19 +78,17 @@ func (client *Client) requestRead(word string) {
 		Key: word,
 	}
 
-	resultList := make([]string, 0, 2)
-
-	for port, server := range client.servers {
-		outcome, err := server.Read(context.Background(), reqRead)
-		if err != nil {
-			delete(client.servers, port)
-			log.Printf(client.name + "lost connection to a server, operating number of servers are now " + strconv.Itoa(int(len(resultList))))
-		} else {
-			resultList = append(resultList, outcome.GetValue())
-		}
+	ack, err := client.server.Read(context.Background(), reqRead)
+	if err != nil {
+		fmt.Println("An error occured, possible on the servers side. Trying to establish connection to new server...")
+		log.Println("An error occured, possible on the servers side. Trying to establish connection to new server...")
+		client.getServerConnection(5002)
+		fmt.Println("Try again!")
+	} else {
+		log.Printf(client.name + " got the following result from the Read request: " + ack.GetValue())
+		fmt.Printf(ack.GetValue())
 	}
 
-	fmt.Printf(resultList[0] + "\n")
 }
 
 // handles clientinput during runtime
@@ -143,7 +137,7 @@ func (client *Client) handleRead() {
 }
 
 func handleClient(client *Client) {
-	client.getServerConnection()
+	client.getServerConnection(5001)
 	go client.sendMessage()
 	for {
 
@@ -151,27 +145,22 @@ func handleClient(client *Client) {
 }
 
 // hardcoded method that connects to two different servers to ensure active replications
-func (client *Client) getServerConnection() {
+func (client *Client) getServerConnection(portNum int32) {
+	port := portNum
+	var conn *grpc.ClientConn
 
-	//Connection to 2 servers
-	for i := 0; i < 2; i++ {
-
-		port := int32(5001) + int32(i)
-		var conn *grpc.ClientConn
-
-		fmt.Printf("Trying to dial: %v\n", port)
-		insecure := insecure.NewCredentials()
-		conn, err := grpc.Dial(fmt.Sprintf(":%v", port), grpc.WithTransportCredentials(insecure), grpc.WithBlock())
-		if err != nil {
-			log.Fatalf("Could not connect: %s", err)
-		}
-
-		fmt.Printf("--- "+client.name+" succesfully dialed to %v\n", port)
-		log.Printf("--- "+client.name+" succesfully dialed to %v\n", port)
-
-		c := dict.NewDictionaryClient(conn)
-		client.servers[port] = c
+	fmt.Printf("Trying to dial: %v\n", port)
+	insecure := insecure.NewCredentials()
+	conn, err := grpc.Dial(fmt.Sprintf(":%v", port), grpc.WithTransportCredentials(insecure), grpc.WithBlock())
+	if err != nil {
+		log.Fatalf("Could not connect: %s", err)
 	}
+	fmt.Printf("--- "+client.name+" succesfully dialed to %v\n", port)
+	log.Printf("--- "+client.name+" succesfully dialed to %v\n", port)
+
+	c := dict.NewDictionaryClient(conn)
+	client.server = c
+
 }
 
 // Sets log output to file in project dir

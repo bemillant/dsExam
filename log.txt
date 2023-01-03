@@ -1,0 +1,26 @@
+2023/01/03 13:02:20 --- bemi succesfully dialed to 5001
+2023/01/03 13:02:32 Attempting to add A greeting to the definition of the word: Hello. Per instructed by bemi
+2023/01/03 13:02:32 Add function was a success
+2023/01/03 13:02:32 Adding to other servers as well
+2023/01/03 13:02:32 Attempting to add A greeting to the definition of the word: Hello. Per instructed by bemi
+2023/01/03 13:02:32 Add function was a success
+2023/01/03 13:02:32 bemi got the following result from the add request: Succesfully added the definition 'A greeting' to the word 'Hello'.
+2023/01/03 13:02:46 Attempting to add happy to the definition of the word: Jolly. Per instructed by bemi
+2023/01/03 13:02:46 Add function was a success
+2023/01/03 13:02:46 Adding to other servers as well
+2023/01/03 13:02:46 Attempting to add happy to the definition of the word: Jolly. Per instructed by bemi
+2023/01/03 13:02:46 Add function was a success
+2023/01/03 13:02:46 bemi got the following result from the add request: Succesfully added the definition 'happy' to the word 'Jolly'.
+2023/01/03 13:02:53 Recieved Read-request to the word Jolly
+2023/01/03 13:02:53 The client is returned the definition of their word: Jolly - happy
+2023/01/03 13:02:53 bemi got the following result from the Read request: happy
+2023/01/03 13:03:00 Recieved Read-request to the word Hello
+2023/01/03 13:03:00 The client is returned the definition of their word: Hello - A greeting
+2023/01/03 13:03:00 bemi got the following result from the Read request: A greeting
+2023/01/03 13:03:15 Attempting to add nice greeting to the definition of the word: Hello. Per instructed by bemi
+2023/01/03 13:03:15 Add function was a success
+2023/01/03 13:03:15 Adding to other servers as well
+2023/01/03 13:03:15 bemi got the following result from the add request: Succesfully added the definition 'nice greeting' to the word 'Hello'.
+2023/01/03 13:03:24 Recieved Read-request to the word Hello
+2023/01/03 13:03:24 The client is returned the definition of their word: Hello - nice greeting
+2023/01/03 13:03:24 bemi got the following result from the Read request: nice greeting

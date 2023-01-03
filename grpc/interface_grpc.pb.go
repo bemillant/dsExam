@@ -22,9 +22,7 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type DictionaryClient interface {
-	//Bid = Add
 	Add(ctx context.Context, in *RequestAdd, opts ...grpc.CallOption) (*Ack, error)
-	//Result = Read
 	Read(ctx context.Context, in *ReadRequest, opts ...grpc.CallOption) (*ReadOutcome, error)
 }
 
@@ -58,9 +56,7 @@ func (c *dictionaryClient) Read(ctx context.Context, in *ReadRequest, opts ...gr
 // All implementations must embed UnimplementedDictionaryServer
 // for forward compatibility
 type DictionaryServer interface {
-	//Bid = Add
 	Add(context.Context, *RequestAdd) (*Ack, error)
-	//Result = Read
 	Read(context.Context, *ReadRequest) (*ReadOutcome, error)
 	mustEmbedUnimplementedDictionaryServer()
 }
