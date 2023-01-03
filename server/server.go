@@ -8,29 +8,24 @@ import (
 	"net"
 	"os"
 	"strconv"
-	"time"
 
-	auction "github.com/bemillant/dsExam/grpc"
+	dict "github.com/bemillant/dsExam/grpc"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 )
 
 type Server struct {
-	auction.UnimplementedAuctionServer
-	currentHighestBid       int32
-	port                    int // ownPort
-	currentHighestBidholder string
-	remainingTime           int32 // ...of the ongoing auction.
-	isAuctionRunning        bool
+	dict.UnimplementedDictionaryServer
+	port       int // ownPort
+	dictionary map[string]string
+	servers    map[int32]dict.DictionaryClient
+	isLeader   bool
 }
 
 /*
 	- Assigns ownPort to user-input int + 5001. Default inputs are 0, 1 and 2.
 	- Sets log.out.
 	- Creates listener on ownPort.
-	- Starts serving, and registers server.
-	- Starts auction-timer (a bit stupidly, they should have begun at exactly the same time)
-	- Announces winner to servers.
-
 */
 
 func main() {
@@ -47,126 +42,77 @@ func main() {
 	}
 
 	server := &Server{
-		currentHighestBid:       0,
-		port:                    int(ownPort),
-		currentHighestBidholder: "the initial value",
-		isAuctionRunning:        false,
+		port:       int(ownPort),
+		dictionary: make(map[string]string),
+		isLeader:   false,
+	}
+
+	if server.port == 5001 {
+		server.servers = make(map[int32]dict.DictionaryClient)
+		server.isLeader = true
+		portTwo := int32(5001) + 1
+		var conn *grpc.ClientConn
+		insecure := insecure.NewCredentials()
+		conn, err := grpc.Dial(fmt.Sprintf(":%v", portTwo), grpc.WithTransportCredentials(insecure), grpc.WithBlock())
+		if err != nil {
+			log.Fatalf("Could not connect: %s", err)
+		}
+		fmt.Printf("succesfully dialed to the other server")
+		c := dict.NewDictionaryClient(conn)
+		server.servers[portTwo] = c
 	}
 
 	grpcServer := grpc.NewServer()
-	auction.RegisterAuctionServer(grpcServer, server)
-
-	go server.handleTime()
+	dict.RegisterDictionaryServer(grpcServer, server)
 
 	for {
-
 		if err := grpcServer.Serve(list); err != nil {
 			log.Fatalf("failed to server %v", err)
 		}
-
 	}
 }
 
-func (s *Server) handleTime() {
+func (s *Server) Add(ctx context.Context, RequestBid *dict.RequestAdd) (*dict.Ack, error) {
+	log.Printf("Attempting to add " + RequestBid.Value + " to the definition of the word: " + RequestBid.Key + ". Per instructed by " + RequestBid.Name)
+	key := RequestBid.GetKey()
+	val := RequestBid.GetValue()
 
-	for {
-		s.StartAuctionTimer()
-		s.StopAuctionAndAnnounceWinner()
-	}
-}
+	s.dictionary[key] = val
 
-func (s *Server) StartAuctionTimer() {
-
-	DurationOfTime := time.Duration(10) * time.Second
-	startAuction := func() {
-		s.resetAuction()
-		s.isAuctionRunning = true
-		fmt.Printf("\nThe Auction has now begun and will run for -15- seconds")
-		log.Printf("\nThe Auction has now begun and will run for -15- seconds")
-	}
-
-	fmt.Println("waiting for auction to begin...")
-	Timer1 := time.AfterFunc(DurationOfTime, startAuction)
-	time.Sleep(time.Second * 15)
-	// defer means that the code won't be run to the very end of the method.
-	defer Timer1.Stop()
-
-}
-
-func (s *Server) StopAuctionAndAnnounceWinner() {
-
-	DurationOfTime := time.Duration(10) * time.Second
-
-	stopAuction := func() {
-		s.isAuctionRunning = false
-		fmt.Printf("\nThe auction is now over with the winner being %v. \n Next Auction will begin in -10- seconds", s.currentHighestBidholder)
-		log.Printf("\nThe auction is now over with the winner being %v. \n Next Auction will begin in -10- seconds", s.currentHighestBidholder)
-	}
-
-	Timer1 := time.AfterFunc(DurationOfTime, stopAuction)
-	time.Sleep(time.Second * 10)
-	// defer means that the code won't be run to the very end of the method.
-	defer Timer1.Stop()
-}
-
-func (s *Server) resetAuction() {
-	s.currentHighestBidholder = "the initial value"
-	s.currentHighestBid = 0
-}
-
-func (s *Server) Bid(ctx context.Context, RequestBid *auction.RequestBid) (*auction.Ack, error) {
-
-	log.Printf(RequestBid.Message)
-
-	incomingBid := strconv.Itoa(int(RequestBid.Amount))
-	previousBid := strconv.Itoa(int(s.currentHighestBid))
-
-	if !s.isAuctionRunning {
-		return &auction.Ack{
-			Message: "The auction is currently over and setting up for the next auction. The last auction was won with by " + s.currentHighestBidholder + "a bid of: " + previousBid,
-			Amount:  s.currentHighestBid,
-		}, nil
-	}
-
-	if s.CheckIfBidIsHighest(RequestBid.Amount) {
-
-		previousHolder := s.currentHighestBidholder
-
-		// sets the auction leader stats:
-		s.currentHighestBid = RequestBid.Amount
-		s.currentHighestBidholder = RequestBid.Name
-
-		return &auction.Ack{
-			Message: RequestBid.Name + " has beaten previous bid " + previousBid + " from " + previousHolder + ".\n Current highest bid is now: " + incomingBid,
-			Amount:  s.currentHighestBid,
+	if s.dictionary[RequestBid.Key] == RequestBid.Value {
+		log.Printf("Add function was a success")
+		return &dict.Ack{
+			Message: "Succesfully added the definition '" + val + "' to the word '" + key + "'.",
+			Success: true,
 		}, nil
 	} else {
-		return &auction.Ack{
-			Message: RequestBid.Name + " did not succeed in outbidding on the value of " + s.currentHighestBidholder + " with their bid of " + previousBid,
-			Amount:  s.currentHighestBid,
+		log.Printf("Add function failed")
+		return &dict.Ack{
+			Message: "Could not update the dictionary",
+			Success: false,
 		}, nil
 	}
 }
 
-func (s *Server) Result(ctx context.Context, RequestBid *auction.HighestBidRequest) (*auction.Outcome, error) {
-	log.Printf(RequestBid.Message)
-	currentHighestBid := strconv.Itoa(int(s.currentHighestBid))
+func (s *Server) Read(ctx context.Context, RequestBid *dict.ReadRequest) (*dict.ReadOutcome, error) {
+	fmt.Println("Recieved Read-request to the word " + RequestBid.Key)
+	log.Printf("Recieved Read-request to the word " + RequestBid.Key)
 
-	if !s.isAuctionRunning {
-		return &auction.Outcome{
-			Amount: s.currentHighestBid,
-			Status: "The auction is over with the winner being: " + s.currentHighestBidholder + " with the highest bid of: " + currentHighestBid,
+	key := RequestBid.GetKey()
+	value, err := s.dictionary[key]
+	if !err {
+		log.Printf("The word did not exist in the dictionary and the client is returned: 'Non'")
+		return &dict.ReadOutcome{
+			Status: "The requested word does not exist in the dictionary as of yet.",
+			Value:  "Non",
 		}, nil
 	}
 
-	return &auction.Outcome{
-		Amount: s.currentHighestBid,
-		Status: "auction is running where " + s.currentHighestBidholder + " has the highest bid at: " + currentHighestBid,
+	log.Printf("The client is returned the definition of their word: " + key + " - " + value)
+	return &dict.ReadOutcome{
+		Status: "Successfully requested definition",
+		Value:  value,
 	}, nil
-}
-
-func (s *Server) CheckIfBidIsHighest(bid int32) bool {
-	return (bid > s.currentHighestBid)
 }
 
 // Sets log output to file in project dir

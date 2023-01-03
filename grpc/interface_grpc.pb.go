@@ -18,122 +18,126 @@ import (
 // Requires gRPC-Go v1.32.0 or later.
 const _ = grpc.SupportPackageIsVersion7
 
-// AuctionClient is the client API for Auction service.
+// DictionaryClient is the client API for Dictionary service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
-type AuctionClient interface {
-	Bid(ctx context.Context, in *RequestBid, opts ...grpc.CallOption) (*Ack, error)
-	Result(ctx context.Context, in *HighestBidRequest, opts ...grpc.CallOption) (*Outcome, error)
+type DictionaryClient interface {
+	//Bid = Add
+	Add(ctx context.Context, in *RequestAdd, opts ...grpc.CallOption) (*Ack, error)
+	//Result = Read
+	Read(ctx context.Context, in *ReadRequest, opts ...grpc.CallOption) (*ReadOutcome, error)
 }
 
-type auctionClient struct {
+type dictionaryClient struct {
 	cc grpc.ClientConnInterface
 }
 
-func NewAuctionClient(cc grpc.ClientConnInterface) AuctionClient {
-	return &auctionClient{cc}
+func NewDictionaryClient(cc grpc.ClientConnInterface) DictionaryClient {
+	return &dictionaryClient{cc}
 }
 
-func (c *auctionClient) Bid(ctx context.Context, in *RequestBid, opts ...grpc.CallOption) (*Ack, error) {
+func (c *dictionaryClient) Add(ctx context.Context, in *RequestAdd, opts ...grpc.CallOption) (*Ack, error) {
 	out := new(Ack)
-	err := c.cc.Invoke(ctx, "/exam.Auction/Bid", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/exam.Dictionary/Add", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *auctionClient) Result(ctx context.Context, in *HighestBidRequest, opts ...grpc.CallOption) (*Outcome, error) {
-	out := new(Outcome)
-	err := c.cc.Invoke(ctx, "/exam.Auction/Result", in, out, opts...)
+func (c *dictionaryClient) Read(ctx context.Context, in *ReadRequest, opts ...grpc.CallOption) (*ReadOutcome, error) {
+	out := new(ReadOutcome)
+	err := c.cc.Invoke(ctx, "/exam.Dictionary/Read", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-// AuctionServer is the server API for Auction service.
-// All implementations must embed UnimplementedAuctionServer
+// DictionaryServer is the server API for Dictionary service.
+// All implementations must embed UnimplementedDictionaryServer
 // for forward compatibility
-type AuctionServer interface {
-	Bid(context.Context, *RequestBid) (*Ack, error)
-	Result(context.Context, *HighestBidRequest) (*Outcome, error)
-	mustEmbedUnimplementedAuctionServer()
+type DictionaryServer interface {
+	//Bid = Add
+	Add(context.Context, *RequestAdd) (*Ack, error)
+	//Result = Read
+	Read(context.Context, *ReadRequest) (*ReadOutcome, error)
+	mustEmbedUnimplementedDictionaryServer()
 }
 
-// UnimplementedAuctionServer must be embedded to have forward compatible implementations.
-type UnimplementedAuctionServer struct {
+// UnimplementedDictionaryServer must be embedded to have forward compatible implementations.
+type UnimplementedDictionaryServer struct {
 }
 
-func (UnimplementedAuctionServer) Bid(context.Context, *RequestBid) (*Ack, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Bid not implemented")
+func (UnimplementedDictionaryServer) Add(context.Context, *RequestAdd) (*Ack, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Add not implemented")
 }
-func (UnimplementedAuctionServer) Result(context.Context, *HighestBidRequest) (*Outcome, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Result not implemented")
+func (UnimplementedDictionaryServer) Read(context.Context, *ReadRequest) (*ReadOutcome, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Read not implemented")
 }
-func (UnimplementedAuctionServer) mustEmbedUnimplementedAuctionServer() {}
+func (UnimplementedDictionaryServer) mustEmbedUnimplementedDictionaryServer() {}
 
-// UnsafeAuctionServer may be embedded to opt out of forward compatibility for this service.
-// Use of this interface is not recommended, as added methods to AuctionServer will
+// UnsafeDictionaryServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to DictionaryServer will
 // result in compilation errors.
-type UnsafeAuctionServer interface {
-	mustEmbedUnimplementedAuctionServer()
+type UnsafeDictionaryServer interface {
+	mustEmbedUnimplementedDictionaryServer()
 }
 
-func RegisterAuctionServer(s grpc.ServiceRegistrar, srv AuctionServer) {
-	s.RegisterService(&Auction_ServiceDesc, srv)
+func RegisterDictionaryServer(s grpc.ServiceRegistrar, srv DictionaryServer) {
+	s.RegisterService(&Dictionary_ServiceDesc, srv)
 }
 
-func _Auction_Bid_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(RequestBid)
+func _Dictionary_Add_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RequestAdd)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(AuctionServer).Bid(ctx, in)
+		return srv.(DictionaryServer).Add(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/exam.Auction/Bid",
+		FullMethod: "/exam.Dictionary/Add",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AuctionServer).Bid(ctx, req.(*RequestBid))
+		return srv.(DictionaryServer).Add(ctx, req.(*RequestAdd))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Auction_Result_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(HighestBidRequest)
+func _Dictionary_Read_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ReadRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(AuctionServer).Result(ctx, in)
+		return srv.(DictionaryServer).Read(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/exam.Auction/Result",
+		FullMethod: "/exam.Dictionary/Read",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AuctionServer).Result(ctx, req.(*HighestBidRequest))
+		return srv.(DictionaryServer).Read(ctx, req.(*ReadRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-// Auction_ServiceDesc is the grpc.ServiceDesc for Auction service.
+// Dictionary_ServiceDesc is the grpc.ServiceDesc for Dictionary service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
-var Auction_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "exam.Auction",
-	HandlerType: (*AuctionServer)(nil),
+var Dictionary_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "exam.Dictionary",
+	HandlerType: (*DictionaryServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "Bid",
-			Handler:    _Auction_Bid_Handler,
+			MethodName: "Add",
+			Handler:    _Dictionary_Add_Handler,
 		},
 		{
-			MethodName: "Result",
-			Handler:    _Auction_Result_Handler,
+			MethodName: "Read",
+			Handler:    _Dictionary_Read_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
